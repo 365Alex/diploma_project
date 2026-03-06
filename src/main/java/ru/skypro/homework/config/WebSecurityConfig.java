@@ -59,9 +59,4 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public JdbcUserDetailsManager userDetailsManager() {
-        return new JdbcUserDetailsManager(dataSource);
-    }
-
 }
