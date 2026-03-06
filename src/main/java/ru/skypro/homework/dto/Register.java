@@ -17,19 +17,22 @@ public class Register {
     @Schema(description = "Логин пользователя", minLength = 4, maxLength = 32, example = "user@example.com")
     private String username;
 
-    @NotBlank @Size(min = 8, max = 16)
+    @NotBlank
+    @Size(min = 8, max = 16)
     @Schema(description = "Пароль пользователя", minLength = 8, maxLength = 16, example = "password123")
     private String password;
 
-    @NotBlank @Size(min = 2, max = 16)
+    @NotBlank
+    @Size(min = 2, max = 16)
     @Schema(description = "Имя пользователя", minLength = 2, maxLength = 16, example = "Иван")
     private String firstName;
 
-    @NotBlank @Size(min = 2, max = 16)
+    @NotBlank
+    @Size(min = 2, max = 16)
     @Schema(description = "Фамилия пользователя", minLength = 2, maxLength = 16, example = "Иванов")
     private String lastName;
 
-    @NotBlank @Pattern(regexp = "\\+7\\s?\\(?\\d{3}\\)?\\s?\\d{3}-?\\d{2}-?\\d{2}")
+    @NotBlank
     @Pattern(regexp = "\\+7\\s?\\(?\\d{3}\\)?\\s?\\d{3}-?\\d{2}-?\\d{2}")
     @Schema(description = "Телефон пользователя", pattern = "\\+7\\s?\\(?\\d{3}\\)?\\s?\\d{3}-?\\d{2}-?\\d{2}", example = "+7 (123) 456-78-90")
     private String phone;

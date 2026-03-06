@@ -10,6 +10,6 @@ public class CreateOrUpdateAd {
     private String title;
     @Schema(description = "Цена объявления")
     private Integer price;
-    @Schema(description = "ВОписание объявления")
+    @Schema(description = "В описание объявления")
     private String description;
 }

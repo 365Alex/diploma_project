@@ -1,24 +1,23 @@
 package ru.skypro.homework.service.impl;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 import ru.skypro.homework.dto.Register;
+import ru.skypro.homework.entity.UserEntity;
+import ru.skypro.homework.mapper.UserMapper;
+import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.AuthService;
 
 @Service
-public class AuthServiceImpl implements AuthService {
-
+@RequiredArgsConstructor
+public class AuthServiceImpl implements AuthService{
     private final UserDetailsManager manager;
     private final PasswordEncoder encoder;
-
-    public AuthServiceImpl(UserDetailsManager manager,
-                           PasswordEncoder passwordEncoder) {
-        this.manager = manager;
-        this.encoder = passwordEncoder;
-    }
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public boolean login(String userName, String password) {
@@ -34,6 +33,8 @@ public class AuthServiceImpl implements AuthService {
         if (manager.userExists(register.getUsername())) {
             return false;
         }
+
+        // Создаем пользователя в Spring Security
         manager.createUser(
                 User.builder()
                         .passwordEncoder(this.encoder::encode)
@@ -41,7 +42,12 @@ public class AuthServiceImpl implements AuthService {
                         .username(register.getUsername())
                         .roles(register.getRole().name())
                         .build());
+
+        // Сохраняем пользователя в БД
+        UserEntity userEntity = userMapper.toEntity(register);
+        userEntity.setPassword(encoder.encode(register.getPassword()));
+        userRepository.save(userEntity);
+
         return true;
     }
-
 }

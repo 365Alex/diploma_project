@@ -34,6 +34,7 @@ public class AdsController {
     })
     @GetMapping
     public ResponseEntity<Ads> getAllAds() {
+
         // TODO: Implement get all ads logic
         log.info("Received request to get all ads");
         Ads ads = new Ads();
