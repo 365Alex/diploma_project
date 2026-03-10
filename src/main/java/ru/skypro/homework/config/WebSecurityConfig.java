@@ -3,6 +3,7 @@ package ru.skypro.homework.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,9 +22,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class WebSecurityConfig {
 
 
-    private final UserDetailsService userDetailsService;  // Добавьте final
-    private final BasicAuthCorsFilter basicAuthCorsFilter;  // Добавьте final
-    private final DataSource dataSource;  // Добавьте это поле
+    private final BasicAuthCorsFilter basicAuthCorsFilter;
+    private final DataSource dataSource;
 
     private static final String[] AUTH_WHITELIST = {
             "/swagger-resources/**",
@@ -38,20 +38,33 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf()
                 .disable()
-                .authorizeHttpRequests(
-                        authorization ->
-                                authorization
-                                        .mvcMatchers(AUTH_WHITELIST)
-                                        .permitAll()
-                                        .mvcMatchers("/ads/**", "/users/**")
-                                        .authenticated())
+                .authorizeHttpRequests(authorization ->
+                        authorization
+                                .mvcMatchers(AUTH_WHITELIST).permitAll()
+                                .mvcMatchers(HttpMethod.GET, "/ads").permitAll()
+                                .mvcMatchers("/ads/**", "/users/**").authenticated()
+                                .anyRequest().authenticated())
                 .cors()
                 .and()
                 .addFilterBefore(basicAuthCorsFilter, BasicAuthenticationFilter.class)
                 .httpBasic(withDefaults())
-                .userDetailsService(userDetailsService);
+                .userDetailsService(userDetailsService());
 
         return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+
+        // Настройка SQL запросов для работы с нашей схемой БД
+        jdbcUserDetailsManager.setUsersByUsernameQuery(
+                "select email, password, true from users where email = ?");
+
+        jdbcUserDetailsManager.setAuthoritiesByUsernameQuery(
+                "select email, 'ROLE_' || role from users where email = ?");
+
+        return jdbcUserDetailsManager;
     }
 
     @Bean

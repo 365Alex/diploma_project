@@ -10,12 +10,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPassword;
-import ru.skypro.homework.dto.Role;
 import ru.skypro.homework.dto.UpdateUser;
 import ru.skypro.homework.dto.User;
+import ru.skypro.homework.service.UserService;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -24,18 +25,22 @@ import ru.skypro.homework.dto.User;
 @RequiredArgsConstructor
 @Tag(name = "Пользователи", description = "API для работы с пользователями")
 public class UserController {
+    private final UserService userService;
+
     @Operation(summary = "Обновление пароля")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping("/set_password")
-    public ResponseEntity<?> setPassword(@RequestBody NewPassword newPassword) {
-        // TODO: Implement password update logic
-        log.info("Received request to set new password");
+    public ResponseEntity<?> setPassword(@RequestBody NewPassword newPassword,
+                                         Authentication authentication) {
+        userService.setPassword(newPassword, authentication);
         return ResponseEntity.ok().build();
     }
+
     @Operation(summary = "Получение информации об авторизованном пользователе")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -44,19 +49,10 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping("/me")
-    public ResponseEntity<User> getUser() {
-        // TODO: Implement get current user logic
-        log.info("Received request to get current user");
-        User user = new User();
-        user.setId(1);
-        user.setEmail("user@example.com");
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setPhone("+7 (123) 456-78-90");
-        user.setRole(Role.USER);
-        user.setImage("/users/me/image");
-        return ResponseEntity.ok(user);
+    public ResponseEntity<User> getUser(Authentication authentication) {
+        return ResponseEntity.ok(userService.getUser(authentication));
     }
+
     @Operation(summary = "Обновление информации об авторизованном пользователе")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -65,20 +61,20 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @PatchMapping("/me")
-    public ResponseEntity<UpdateUser> updateUser(@RequestBody UpdateUser updateUser) {
-        // TODO: Implement update user logic
-        log.info("Received request to update user");
-        return ResponseEntity.ok(updateUser);
+    public ResponseEntity<UpdateUser> updateUser(@RequestBody UpdateUser updateUser,
+                                                 Authentication authentication) {
+        return ResponseEntity.ok(userService.updateUser(updateUser, authentication));
     }
+
     @Operation(summary = "Обновление аватара авторизованного пользователя")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @PatchMapping(value = "/me/image", consumes = "multipart/form-data")
-    public ResponseEntity<?> updateUserImage(@RequestParam("image") MultipartFile image) {
-        // TODO: Implement update user image logic
-        log.info("Received request to update user image");
+    public ResponseEntity<?> updateUserImage(@RequestParam("image") MultipartFile image,
+                                             Authentication authentication) {
+        userService.updateUserImage(image, authentication);
         return ResponseEntity.ok().build();
     }
 }
