@@ -1,6 +1,7 @@
 package ru.skypro.homework.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -16,13 +17,9 @@ import ru.skypro.homework.mapper.AdMapper;
 import ru.skypro.homework.repository.AdRepository;
 import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.AdService;
+import ru.skypro.homework.service.ImageService;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,8 +29,10 @@ public class AdServiceImpl implements AdService {
     private final AdRepository adRepository;
     private final UserRepository userRepository;
     private final AdMapper adMapper;
+    private final ImageService imageService;
 
-    private static final String IMAGES_DIR = "images/ads/";
+    @Value("${image.base.url}")
+    private String baseUrl;
 
     @Override
     public Ads getAllAds() {
@@ -41,7 +40,7 @@ public class AdServiceImpl implements AdService {
         Ads result = new Ads();
         result.setCount(ads.size());
         result.setResults(ads.stream()
-                .map(adMapper::mapToAdDto)
+                .map(this::mapToAdDtoWithImageUrl)
                 .collect(Collectors.toList()));
         return result;
     }
@@ -55,19 +54,19 @@ public class AdServiceImpl implements AdService {
         AdEntity adEntity = adMapper.mapToEntity(properties, author);
 
         if (image != null && !image.isEmpty()) {
-            String imagePath = saveImage(image);
-            adEntity.setImage(imagePath);
+            String imageUrl = imageService.saveImage(image, "ads");
+            adEntity.setImage(imageUrl);
         }
 
         AdEntity savedAd = adRepository.save(adEntity);
-        return adMapper.mapToAdDto(savedAd);
+        return mapToAdDtoWithImageUrl(savedAd);
     }
 
     @Override
     public ExtendedAd getAd(Integer id) {
         AdEntity adEntity = adRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ad not found"));
-        return adMapper.mapToExtendedAdDto(adEntity);
+        return mapToExtendedAdDtoWithImageUrl(adEntity);
     }
 
     @Override
@@ -77,6 +76,11 @@ public class AdServiceImpl implements AdService {
                 .orElseThrow(() -> new RuntimeException("Ad not found"));
 
         checkAccess(adEntity, authentication);
+
+        // Удаляем изображение, если оно есть
+        if (adEntity.getImage() != null) {
+            imageService.deleteImage(adEntity.getImage());
+        }
 
         adRepository.delete(adEntity);
     }
@@ -91,7 +95,7 @@ public class AdServiceImpl implements AdService {
 
         adMapper.updateEntity(ad, adEntity);
         AdEntity updatedAd = adRepository.save(adEntity);
-        return adMapper.mapToAdDto(updatedAd);
+        return mapToAdDtoWithImageUrl(updatedAd);
     }
 
     @Override
@@ -103,7 +107,7 @@ public class AdServiceImpl implements AdService {
         Ads result = new Ads();
         result.setCount(ads.size());
         result.setResults(ads.stream()
-                .map(adMapper::mapToAdDto)
+                .map(this::mapToAdDtoWithImageUrl)
                 .collect(Collectors.toList()));
         return result;
     }
@@ -117,12 +121,34 @@ public class AdServiceImpl implements AdService {
         checkAccess(adEntity, authentication);
 
         if (image != null && !image.isEmpty()) {
-            String imagePath = saveImage(image);
-            adEntity.setImage(imagePath);
+            // Удаляем старое изображение
+            if (adEntity.getImage() != null) {
+                imageService.deleteImage(adEntity.getImage());
+            }
+
+            // Сохраняем новое
+            String imageUrl = imageService.saveImage(image, "ads");
+            adEntity.setImage(imageUrl);
             adRepository.save(adEntity);
         }
 
         return new byte[0];
+    }
+
+    private Ad mapToAdDtoWithImageUrl(AdEntity entity) {
+        Ad dto = adMapper.mapToAdDto(entity);
+        if (dto != null && entity.getImage() != null) {
+            dto.setImage(entity.getImage());
+        }
+        return dto;
+    }
+
+    private ExtendedAd mapToExtendedAdDtoWithImageUrl(AdEntity entity) {
+        ExtendedAd dto = adMapper.mapToExtendedAdDto(entity);
+        if (dto != null && entity.getImage() != null) {
+            dto.setImage(entity.getImage());
+        }
+        return dto;
     }
 
     private void checkAccess(AdEntity adEntity, Authentication authentication) {
@@ -131,23 +157,6 @@ public class AdServiceImpl implements AdService {
 
         if (!isAdmin && !adEntity.getAuthor().getEmail().equals(authentication.getName())) {
             throw new AccessDeniedException("Access denied");
-        }
-    }
-
-    private String saveImage(MultipartFile image) {
-        try {
-            Path uploadPath = Paths.get(IMAGES_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String filename = UUID.randomUUID() + "_" + image.getOriginalFilename();
-            Path filePath = uploadPath.resolve(filename);
-            Files.copy(image.getInputStream(), filePath);
-
-            return "/ads/images/" + filename;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save image", e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package ru.skypro.homework.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +20,7 @@ import ru.skypro.homework.dto.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ExtendedAd;
 import ru.skypro.homework.service.AdService;
 
+import java.io.IOException;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -27,6 +29,7 @@ import ru.skypro.homework.service.AdService;
 @RequiredArgsConstructor
 public class AdsController {
     private final AdService adService;
+    private final ObjectMapper objectMapper;
 
     @Operation(summary = "Получение всех объявлений")
     @ApiResponses(value = {
@@ -47,13 +50,25 @@ public class AdsController {
                             schema = @Schema(implementation = Ad.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Ad> addAd(
-            @RequestPart("properties") CreateOrUpdateAd properties,
-            @RequestPart("image") MultipartFile image,
+            @RequestParam("properties") String propertiesJson,
+            @RequestParam("image") MultipartFile image,
             Authentication authentication) {
-        Ad ad = adService.addAd(properties, image, authentication);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ad);
+
+        try {
+            log.info("Received properties JSON: {}", propertiesJson);
+            log.info("Received image: {}", image.getOriginalFilename());
+
+            // Преобразуем JSON строку в объект
+            CreateOrUpdateAd properties = objectMapper.readValue(propertiesJson, CreateOrUpdateAd.class);
+
+            Ad ad = adService.addAd(properties, image, authentication);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ad);
+        } catch (IOException e) {
+            log.error("Failed to parse properties JSON", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @Operation(summary = "Получение информации об объявлении")
@@ -119,7 +134,7 @@ public class AdsController {
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "404", description = "Not found")
     })
-    @PatchMapping(value = "/{id}/image", consumes = "multipart/form-data")
+    @PatchMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<byte[]> updateImage(@PathVariable Integer id,
                                               @RequestParam("image") MultipartFile image,
                                               Authentication authentication) {
