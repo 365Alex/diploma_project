@@ -12,7 +12,12 @@ public class CommentMapper {
 
     @Value("${image.base.url}")
     private String baseUrl;
-
+    /**
+     * Преобразует сущность комментария в DTO Comment.
+     *
+     * @param entity сущность комментария
+     * @return DTO комментария
+     */
     public Comment mapToDto(CommentEntity entity) {
         if (entity == null || entity.getAuthor() == null) {
             return null;
@@ -23,7 +28,6 @@ public class CommentMapper {
 
         dto.setAuthor(author.getId());
 
-        // Устанавливаем полный URL для аватара автора комментария
         if (author.getImage() != null) {
             dto.setAuthorImage(author.getImage());
         } else {
@@ -36,7 +40,14 @@ public class CommentMapper {
         dto.setText(entity.getText());
         return dto;
     }
-
+    /**
+     * Создаёт сущность комментария из DTO, автора и объявления.
+     *
+     * @param createOrUpdateComment DTO с данными для создания
+     * @param author                автор комментария
+     * @param ad                    объявление, к которому относится комментарий
+     * @return созданная сущность
+     */
     public CommentEntity mapToEntity(CreateOrUpdateComment createOrUpdateComment,
                                      UserEntity author,
                                      AdEntity ad) {
@@ -51,6 +62,12 @@ public class CommentMapper {
         return entity;
     }
 
+    /**
+     * Обновляет существующую сущность комментария данными из DTO.
+     *
+     * @param createOrUpdateComment DTO с обновляемыми данными
+     * @param entity                сущность для обновления
+     */
     public void updateEntity(CreateOrUpdateComment createOrUpdateComment, CommentEntity entity) {
         if (createOrUpdateComment == null || entity == null) {
             return;

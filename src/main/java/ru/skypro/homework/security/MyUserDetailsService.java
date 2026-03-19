@@ -11,11 +11,21 @@ import ru.skypro.homework.repository.UserRepository;
 
 import java.util.Collections;
 
+/**
+ * Реализация UserDetailsService для загрузки пользователей из базы данных.
+ */
 @Service
 @RequiredArgsConstructor
 public class MyUserDetailsService implements UserDetailsService{
     private final UserRepository userRepository;
 
+    /**
+     * Загружает пользователя по email.
+     *
+     * @param username email пользователя
+     * @return объект UserDetails
+     * @throws UsernameNotFoundException если пользователь не найден
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByEmail(username)

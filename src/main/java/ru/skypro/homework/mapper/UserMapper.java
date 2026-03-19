@@ -7,6 +7,12 @@ import ru.skypro.homework.entity.UserEntity;
 
 @Component
 public class UserMapper {
+    /**
+     * Преобразует сущность пользователя в DTO User.
+     *
+     * @param entity сущность пользователя
+     * @return DTO пользователя
+     */
     public User toDto(UserEntity entity) {
         if (entity == null) {
             return null;
@@ -22,7 +28,12 @@ public class UserMapper {
         dto.setImage(entity.getImage());
         return dto;
     }
-
+    /**
+     * Создаёт сущность пользователя из DTO регистрации.
+     *
+     * @param register DTO регистрации
+     * @return созданная сущность пользователя
+     */
     public UserEntity toEntity(Register register) {
         if (register == null) {
             return null;
@@ -36,7 +47,12 @@ public class UserMapper {
         entity.setRole(register.getRole());
         return entity;
     }
-
+    /**
+     * Обновляет существующую сущность пользователя данными из DTO UpdateUser.
+     *
+     * @param updateUser DTO с обновляемыми данными
+     * @param entity     сущность для обновления
+     */
     public void updateEntity(UpdateUser updateUser, UserEntity entity) {
         if (updateUser == null || entity == null) {
             return;

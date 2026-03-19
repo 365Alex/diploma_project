@@ -3,6 +3,9 @@ package ru.skypro.homework.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+/**
+ * DTO для создания или обновления объявления.
+ */
 @Data
 @Schema(description = "Создать или изменить объявление")
 public class CreateOrUpdateAd {

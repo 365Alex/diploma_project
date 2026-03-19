@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.skypro.homework.dto.Login;
 import ru.skypro.homework.dto.Register;
 import ru.skypro.homework.service.AuthService;
-
+/**
+ * Контроллер для аутентификации и регистрации пользователей.
+ */
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
@@ -25,6 +27,13 @@ import ru.skypro.homework.service.AuthService;
 public class AuthController {
 
     private final AuthService authService;
+
+    /**
+     * Выполняет вход пользователя в систему.
+     *
+     * @param login данные для входа (логин и пароль)
+     * @return OK, если аутентификация успешна, иначе UNAUTHORIZED
+     */
     @Operation(summary = "Авторизация пользователя")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
@@ -38,6 +47,12 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+    /**
+     * Регистрирует нового пользователя.
+     *
+     * @param register данные для регистрации
+     * @return CREATED, если регистрация успешна, иначе BAD_REQUEST
+     */
     @Operation(summary = "Регистрация пользователя")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created"),

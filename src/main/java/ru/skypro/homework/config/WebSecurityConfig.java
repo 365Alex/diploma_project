@@ -18,7 +18,10 @@ import javax.sql.DataSource;
 import java.util.Arrays;
 
 import static org.springframework.security.config.Customizer.withDefaults;
-
+/**
+ * Конфигурация безопасности приложения.
+ * Настраивает доступ к эндпоинтам, CORS, а также управление пользователями через JDBC.
+ */
 @Configuration
 @RequiredArgsConstructor
 public class WebSecurityConfig {
@@ -34,7 +37,13 @@ public class WebSecurityConfig {
             "/register",
             "/images/**"
     };
-
+    /**
+     * Создаёт цепочку фильтров безопасности.
+     *
+     * @param http объект для настройки HTTP-безопасности
+     * @return настроенная цепочка фильтров
+     * @throws Exception если возникает ошибка при конфигурации
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
@@ -50,7 +59,11 @@ public class WebSecurityConfig {
 
         return http.build();
     }
-
+    /**
+     * Настраивает источник CORS-конфигурации.
+     *
+     * @return источник CORS-конфигурации
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -67,7 +80,6 @@ public class WebSecurityConfig {
                 "GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"
         ));
 
-        // ВАЖНО: 'type' добавлен для запросов от фронтенда
         configuration.setAllowedHeaders(Arrays.asList(
                 "*",
                 "Authorization",
@@ -92,8 +104,11 @@ public class WebSecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-    // ... остальные бины (userDetailsService, passwordEncoder) без изменений
+    /**
+     * Предоставляет сервис для загрузки пользователей из базы данных.
+     *
+     * @return реализация UserDetailsService на основе JDBC
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
@@ -103,7 +118,11 @@ public class WebSecurityConfig {
                 "select email, 'ROLE_' || role from users where email = ?");
         return jdbcUserDetailsManager;
     }
-
+    /**
+     * Создаёт кодировщик паролей BCrypt.
+     *
+     * @return кодировщик паролей
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

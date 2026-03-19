@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Фильтр для добавления заголовка CORS Allow-Credentials к каждому ответу.
+ */
 @Component
 public class BasicAuthCorsFilter extends OncePerRequestFilter {
 

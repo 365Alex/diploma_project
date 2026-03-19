@@ -2,7 +2,9 @@ package ru.skypro.homework.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
+/**
+ * DTO, представляющее список всех объявлений.
+ */
 import java.util.List;
 @Data
 @Schema(description = "Все объявления")

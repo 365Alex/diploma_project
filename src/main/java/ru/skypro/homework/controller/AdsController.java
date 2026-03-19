@@ -21,7 +21,10 @@ import ru.skypro.homework.dto.ExtendedAd;
 import ru.skypro.homework.service.AdService;
 
 import java.io.IOException;
-
+/**
+ * Контроллер для управления объявлениями.
+ * Предоставляет эндпоинты для получения, создания, обновления и удаления объявлений.
+ */
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
@@ -30,7 +33,11 @@ import java.io.IOException;
 public class AdsController {
     private final AdService adService;
     private final ObjectMapper objectMapper;
-
+    /**
+     * Получает все объявления.
+     *
+     * @return список всех объявлений
+     */
     @Operation(summary = "Получение всех объявлений")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -42,7 +49,14 @@ public class AdsController {
     public ResponseEntity<Ads> getAllAds() {
         return ResponseEntity.ok(adService.getAllAds());
     }
-
+    /**
+     * Добавляет новое объявление.
+     *
+     * @param propertiesJson JSON-строка с данными объявления
+     * @param image          файл изображения
+     * @param authentication данные аутентификации текущего пользователя
+     * @return созданное объявление
+     */
     @Operation(summary = "Добавление объявления")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created",
@@ -75,6 +89,12 @@ public class AdsController {
                     .body("Invalid properties JSON format: " + e.getMessage());
         }
     }
+    /**
+     * Получает информацию об объявлении по его идентификатору.
+     *
+     * @param id идентификатор объявления
+     * @return расширенная информация об объявлении
+     */
 
     @Operation(summary = "Получение информации об объявлении")
     @ApiResponses(value = {
@@ -88,7 +108,13 @@ public class AdsController {
     public ResponseEntity<ExtendedAd> getAds(@PathVariable Integer id) {
         return ResponseEntity.ok(adService.getAd(id));
     }
-
+    /**
+     * Удаляет объявление.
+     *
+     * @param id             идентификатор объявления
+     * @param authentication данные аутентификации
+     * @return пустой ответ с кодом 204
+     */
     @Operation(summary = "Удаление объявления")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "No Content"),
@@ -101,7 +127,14 @@ public class AdsController {
         adService.removeAd(id, authentication);
         return ResponseEntity.noContent().build();
     }
-
+    /**
+     * Обновляет информацию об объявлении.
+     *
+     * @param id             идентификатор объявления
+     * @param ad             новые данные объявления
+     * @param authentication данные аутентификации
+     * @return обновлённое объявление
+     */
     @Operation(summary = "Обновление информации об объявлении")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -117,7 +150,12 @@ public class AdsController {
                                         Authentication authentication) {
         return ResponseEntity.ok(adService.updateAd(id, ad, authentication));
     }
-
+    /**
+     * Получает объявления текущего авторизованного пользователя.
+     *
+     * @param authentication данные аутентификации
+     * @return список объявлений пользователя
+     */
     @Operation(summary = "Получение объявлений авторизованного пользователя")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -129,7 +167,14 @@ public class AdsController {
     public ResponseEntity<Ads> getAdsMe(Authentication authentication) {
         return ResponseEntity.ok(adService.getAdsMe(authentication));
     }
-
+    /**
+     * Обновляет изображение объявления.
+     *
+     * @param id             идентификатор объявления
+     * @param image          новый файл изображения
+     * @param authentication данные аутентификации
+     * @return массив байтов нового изображения (может быть пустым)
+     */
     @Operation(summary = "Обновление картинки объявления")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",

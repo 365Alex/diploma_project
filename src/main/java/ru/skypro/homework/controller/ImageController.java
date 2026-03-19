@@ -5,14 +5,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.skypro.homework.service.ImageService;
 
 import java.io.IOException;
-
+/**
+ * Контроллер для получения изображений.
+ */
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
@@ -21,7 +22,12 @@ import java.io.IOException;
 public class ImageController {
 
     private final ImageService imageService;
-
+    /**
+     * Возвращает изображение по его имени.
+     *
+     * @param imageName имя файла изображения
+     * @return массив байтов изображения
+     */
     @Operation(summary = "Получение изображения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),

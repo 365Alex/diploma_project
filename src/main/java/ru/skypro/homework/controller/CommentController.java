@@ -15,7 +15,9 @@ import ru.skypro.homework.dto.Comment;
 import ru.skypro.homework.dto.Comments;
 import ru.skypro.homework.dto.CreateOrUpdateComment;
 import ru.skypro.homework.service.CommentService;
-
+/**
+ * Контроллер для управления комментариями к объявлениям.
+ */
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
@@ -23,6 +25,12 @@ import ru.skypro.homework.service.CommentService;
 public class CommentController {
     private final CommentService commentService;
 
+    /**
+     * Получает все комментарии для указанного объявления.
+     *
+     * @param id идентификатор объявления
+     * @return список комментариев
+     */
     @Operation(summary = "Получение комментариев объявления")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -35,7 +43,14 @@ public class CommentController {
     public ResponseEntity<Comments> getComments(@PathVariable Integer id) {
         return ResponseEntity.ok(commentService.getComments(id));
     }
-
+    /**
+     * Добавляет новый комментарий к объявлению.
+     *
+     * @param id             идентификатор объявления
+     * @param comment        данные комментария
+     * @param authentication данные аутентификации
+     * @return созданный комментарий
+     */
     @Operation(summary = "Добавление комментария к объявлению")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -50,7 +65,14 @@ public class CommentController {
                                               Authentication authentication) {
         return ResponseEntity.ok(commentService.addComment(id, comment, authentication));
     }
-
+    /**
+     * Удаляет комментарий.
+     *
+     * @param adId        идентификатор объявления
+     * @param commentId   идентификатор комментария
+     * @param authentication данные аутентификации
+     * @return пустой ответ с кодом 204
+     */
     @Operation(summary = "Удаление комментария")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
@@ -65,7 +87,15 @@ public class CommentController {
         commentService.deleteComment(adId, commentId, authentication);
         return ResponseEntity.noContent().build();
     }
-
+    /**
+     * Обновляет существующий комментарий.
+     *
+     * @param adId        идентификатор объявления
+     * @param commentId   идентификатор комментария
+     * @param comment     новые данные комментария
+     * @param authentication данные аутентификации
+     * @return обновлённый комментарий
+     */
     @Operation(summary = "Обновление комментария")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",

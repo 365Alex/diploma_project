@@ -8,5 +8,11 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Integer>{
+    /**
+     * Находит все комментарии для указанного объявления.
+     *
+     * @param ad объявление
+     * @return список комментариев
+     */
     List<CommentEntity> findByAd(AdEntity ad);
 }

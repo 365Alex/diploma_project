@@ -17,7 +17,9 @@ import ru.skypro.homework.dto.NewPassword;
 import ru.skypro.homework.dto.UpdateUser;
 import ru.skypro.homework.dto.User;
 import ru.skypro.homework.service.UserService;
-
+/**
+ * Контроллер для управления пользователями.
+ */
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
@@ -26,7 +28,13 @@ import ru.skypro.homework.service.UserService;
 @Tag(name = "Пользователи", description = "API для работы с пользователями")
 public class UserController {
     private final UserService userService;
-
+    /**
+     * Обновляет пароль текущего пользователя.
+     *
+     * @param newPassword    данные нового пароля
+     * @param authentication данные аутентификации
+     * @return пустой ответ с кодом 200
+     */
     @Operation(summary = "Обновление пароля")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
@@ -41,6 +49,12 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Получает информацию о текущем авторизованном пользователе.
+     *
+     * @param authentication данные аутентификации
+     * @return информация о пользователе
+     */
     @Operation(summary = "Получение информации об авторизованном пользователе")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -52,7 +66,13 @@ public class UserController {
     public ResponseEntity<User> getUser(Authentication authentication) {
         return ResponseEntity.ok(userService.getUser(authentication));
     }
-
+    /**
+     * Обновляет информацию о текущем пользователе.
+     *
+     * @param updateUser     новые данные пользователя
+     * @param authentication данные аутентификации
+     * @return обновлённые данные пользователя
+     */
     @Operation(summary = "Обновление информации об авторизованном пользователе")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK",
@@ -65,7 +85,13 @@ public class UserController {
                                                  Authentication authentication) {
         return ResponseEntity.ok(userService.updateUser(updateUser, authentication));
     }
-
+    /**
+     * Обновляет аватар текущего пользователя.
+     *
+     * @param image          файл нового аватара
+     * @param authentication данные аутентификации
+     * @return пустой ответ с кодом 200
+     */
     @Operation(summary = "Обновление аватара авторизованного пользователя")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
