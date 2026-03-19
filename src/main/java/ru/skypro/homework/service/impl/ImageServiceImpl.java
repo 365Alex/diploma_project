@@ -1,4 +1,5 @@
 package ru.skypro.homework.service.impl;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,8 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class ImageServiceImpl implements ImageService{
+public class ImageServiceImpl implements ImageService {
+
     @Value("${image.avatars.dir}")
     private String avatarsDir;
 
@@ -41,6 +43,7 @@ public class ImageServiceImpl implements ImageService{
             Path uploadPath = Paths.get(targetDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
+                log.info("Created directory: {}", uploadPath);
             }
 
             // Генерируем уникальное имя файла
@@ -48,37 +51,45 @@ public class ImageServiceImpl implements ImageService{
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            } else {
+                extension = ".jpg"; // значение по умолчанию
             }
+
             String filename = UUID.randomUUID() + extension;
+            Path filePath = uploadPath.resolve(filename);
 
             // Сохраняем файл
-            Path filePath = uploadPath.resolve(filename);
             Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
             log.info("Image saved: {}", filePath);
 
-            // Возвращаем URL для доступа к изображению
-            return baseUrl + "/" + filename;
+            // Возвращаем относительный путь для базы данных
+            return "/images/" + filename;
 
         } catch (IOException e) {
             log.error("Failed to save image", e);
-            throw new RuntimeException("Failed to save image", e);
+            throw new RuntimeException("Failed to save image: " + e.getMessage(), e);
         }
     }
 
     @Override
     public byte[] getImage(String imageName) throws IOException {
-        // Ищем изображение сначала в папке с аватарами, затем в папке с объявлениями
-        Path avatarPath = Paths.get(avatarsDir, imageName);
-        Path adPath = Paths.get(adsDir, imageName);
+        // Извлекаем только имя файла из пути
+        String filename = Paths.get(imageName).getFileName().toString();
+
+        // Ищем в обеих директориях
+        Path avatarPath = Paths.get(avatarsDir, filename);
+        Path adPath = Paths.get(adsDir, filename);
 
         if (Files.exists(avatarPath)) {
+            log.debug("Found image in avatars: {}", avatarPath);
             return Files.readAllBytes(avatarPath);
         } else if (Files.exists(adPath)) {
+            log.debug("Found image in ads: {}", adPath);
             return Files.readAllBytes(adPath);
         } else {
-            log.warn("Image not found: {}", imageName);
-            throw new IOException("Image not found: " + imageName);
+            log.warn("Image not found: {} (searched in {} and {})",
+                    filename, avatarsDir, adsDir);
+            throw new IOException("Image not found: " + filename);
         }
     }
 
@@ -89,8 +100,8 @@ public class ImageServiceImpl implements ImageService{
         }
 
         try {
-            // Извлекаем имя файла из URL
-            String filename = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+            // Извлекаем имя файла из пути
+            String filename = Paths.get(imagePath).getFileName().toString();
 
             // Удаляем из обеих возможных директорий
             Path avatarPath = Paths.get(avatarsDir, filename);

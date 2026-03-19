@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping("/images")
 public class ImageController {
+
     private final ImageService imageService;
 
     @Operation(summary = "Получение изображения")
@@ -31,8 +33,15 @@ public class ImageController {
             MediaType.IMAGE_GIF_VALUE,
             "image/*"
     })
-    public ResponseEntity<byte[]> getImage(@PathVariable String imageName) throws IOException {
-        byte[] imageData = imageService.getImage(imageName);
-        return ResponseEntity.ok(imageData);
+    public ResponseEntity<byte[]> getImage(@PathVariable String imageName) {
+        try {
+            log.debug("Requesting image: {}", imageName);
+            byte[] imageData = imageService.getImage(imageName);
+            return ResponseEntity.ok(imageData);
+        } catch (IOException e) {
+            log.warn("Image not found: {}", imageName);
+            // Возвращаем заглушку или 404
+            return ResponseEntity.notFound().build();
+        }
     }
 }

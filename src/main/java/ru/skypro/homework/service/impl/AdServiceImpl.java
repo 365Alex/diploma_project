@@ -48,17 +48,36 @@ public class AdServiceImpl implements AdService {
     @Override
     @Transactional
     public Ad addAd(CreateOrUpdateAd properties, MultipartFile image, Authentication authentication) {
+        log.info("========== AdService.addAd ==========");
+        log.info("Authentication: {}", authentication.getName());
+        log.info("Properties: {}", properties);
+
+        // Получаем автора
         UserEntity author = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    log.error("User not found: {}", authentication.getName());
+                    return new RuntimeException("User not found: " + authentication.getName());
+                });
+        log.info("Author found: ID={}, email={}", author.getId(), author.getEmail());
 
+        // Создаем объявление
         AdEntity adEntity = adMapper.mapToEntity(properties, author);
+        log.info("Ad entity created: {}", adEntity);
 
+        // Сохраняем изображение
         if (image != null && !image.isEmpty()) {
+            log.info("Saving image: {}", image.getOriginalFilename());
             String imageUrl = imageService.saveImage(image, "ads");
             adEntity.setImage(imageUrl);
+            log.info("Image saved with URL: {}", imageUrl);
+        } else {
+            log.warn("Image is empty or null");
         }
 
+        // Сохраняем объявление
         AdEntity savedAd = adRepository.save(adEntity);
+        log.info("Ad saved with ID: {}", savedAd.getPk());
+
         return mapToAdDtoWithImageUrl(savedAd);
     }
 

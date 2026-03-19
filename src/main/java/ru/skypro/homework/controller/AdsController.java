@@ -51,23 +51,28 @@ public class AdsController {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Ad> addAd(
+    public ResponseEntity<?> addAd(
             @RequestParam("properties") String propertiesJson,
             @RequestParam("image") MultipartFile image,
             Authentication authentication) {
 
-        try {
-            log.info("Received properties JSON: {}", propertiesJson);
-            log.info("Received image: {}", image.getOriginalFilename());
+        log.info("========== POST /ads ==========");
+        log.info("Authentication: {}", authentication != null ? authentication.getName() : "null");
+        log.info("Properties JSON: {}", propertiesJson);
+        log.info("Image: name={}, size={}, contentType={}",
+                image.getOriginalFilename(), image.getSize(), image.getContentType());
 
-            // Преобразуем JSON строку в объект
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
             CreateOrUpdateAd properties = objectMapper.readValue(propertiesJson, CreateOrUpdateAd.class);
 
             Ad ad = adService.addAd(properties, image, authentication);
             return ResponseEntity.status(HttpStatus.CREATED).body(ad);
+
         } catch (IOException e) {
             log.error("Failed to parse properties JSON", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid properties JSON format: " + e.getMessage());
         }
     }
 
