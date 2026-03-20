@@ -52,7 +52,7 @@ public class AdsController {
     /**
      * Добавляет новое объявление.
      *
-     * @param propertiesJson JSON-строка с данными объявления
+     * @param properties     данные объявления (автоматически десериализуются из JSON-части multipart-запроса)
      * @param image          файл изображения
      * @param authentication данные аутентификации текущего пользователя
      * @return созданное объявление
@@ -66,28 +66,12 @@ public class AdsController {
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addAd(
-            @RequestParam("properties") String propertiesJson,
+            @RequestPart("properties") CreateOrUpdateAd properties,
             @RequestParam("image") MultipartFile image,
             Authentication authentication) {
-
-        log.info("========== POST /ads ==========");
-        log.info("Authentication: {}", authentication != null ? authentication.getName() : "null");
-        log.info("Properties JSON: {}", propertiesJson);
-        log.info("Image: name={}, size={}, contentType={}",
-                image.getOriginalFilename(), image.getSize(), image.getContentType());
-
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            CreateOrUpdateAd properties = objectMapper.readValue(propertiesJson, CreateOrUpdateAd.class);
-
-            Ad ad = adService.addAd(properties, image, authentication);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ad);
-
-        } catch (IOException e) {
-            log.error("Failed to parse properties JSON", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid properties JSON format: " + e.getMessage());
-        }
+        // properties уже будет десериализован автоматически
+        Ad ad = adService.addAd(properties, image, authentication);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ad);
     }
     /**
      * Получает информацию об объявлении по его идентификатору.
